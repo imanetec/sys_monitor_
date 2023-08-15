@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"text/tabwriter"
+	"time"
 )
 
 func executeCommand(command string) (string, error) {
@@ -16,18 +17,23 @@ func executeCommand(command string) (string, error) {
 	return string(output), nil
 }
 
-func main() {
+func displayMetrics() {
+	clearScreen()
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
 
 	// CPU Metrics
 	cpuUsageOutput, _ := executeCommand("top -bn 1 | grep Cpu")
+
+	// Load Average
 	loadAverageOutput, _ := executeCommand("uptime")
 
 	// Memory Metrics
 	memUsageOutput, _ := executeCommand("free -h")
+
+	// Swap Usage
 	swapUsageOutput, _ := executeCommand("swapon --show")
 
-	// Disk Metrics
+	// Disk Usage
 	diskUsageOutput, _ := executeCommand("df -h")
 
 	// Print Metrics
@@ -41,5 +47,19 @@ func main() {
 	fmt.Fprintln(w, swapUsageOutput)
 	fmt.Fprintln(w, "=== Disk Usage ===")
 	fmt.Fprintln(w, diskUsageOutput)
+
 	w.Flush()
+}
+
+func clearScreen() {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+}
+
+func main() {
+	for {
+		displayMetrics()
+		time.Sleep(2 * time.Second)
+	}
 }
