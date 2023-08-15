@@ -2,11 +2,65 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"text/tabwriter"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+var (
+	cpuUsageMetric = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "cpu_usage_percent",
+			Help: "CPU Usage in Percentage",
+		},
+		[]string{"core"},
+	)
+
+	memoryUsageMetric = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "memory_usage_bytes",
+			Help: "Memory Usage in Bytes",
+		},
+	)
+
+	// Define load average metric
+	loadAverageMetric = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "load_average",
+			Help: "System Load Average",
+		},
+		[]string{"type"},
+	)
+
+	// Define disk usage metric
+	diskUsageMetric = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "disk_usage_bytes",
+			Help: "Disk Usage in Bytes",
+		},
+	)
+
+	// Define swap usage metric
+	swapUsageMetric = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "swap_usage_bytes",
+			Help: "Swap Usage in Bytes",
+		},
+)
+
+func init() {
+	prometheus.MustRegister(cpuUsageMetric)
+	prometheus.MustRegister(memoryUsageMetric)
+	prometheus.MustRegister(loadAverageMetric) // Register load average metric
+	prometheus.MustRegister(diskUsageMetric)   // Register disk usage metric
+	prometheus.MustRegister(swapUsageMetric)   // Register swap usage metric
+	// Register other metrics...
+}
 
 func executeCommand(command string) (string, error) {
 	cmd := exec.Command("bash", "-c", command)
@@ -17,49 +71,42 @@ func executeCommand(command string) (string, error) {
 	return string(output), nil
 }
 
-func displayMetrics() {
-	clearScreen()
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
-
-	// CPU Metrics
+func updateMetrics() {
+	// Update CPU metrics
 	cpuUsageOutput, _ := executeCommand("top -bn 1 | grep Cpu")
+	// Parse cpuUsageOutput and update cpuUsageMetric for each core
 
-	// Load Average
-	loadAverageOutput, _ := executeCommand("uptime")
-
-	// Memory Metrics
+	// Update Memory metrics
 	memUsageOutput, _ := executeCommand("free -h")
+	// Parse memUsageOutput and update memoryUsageMetric
 
-	// Swap Usage
-	swapUsageOutput, _ := executeCommand("swapon --show")
+	// Update Load Average metric
+	loadAvgOutput, _ := executeCommand("uptime")
+	// Parse loadAvgOutput and update loadAverageMetric
 
-	// Disk Usage
-	diskUsageOutput, _ := executeCommand("df -h")
+	// Update Disk Usage metric
+	diskUsageOutput, _ := executeCommand("df -h /")
+	// Parse diskUsageOutput and update diskUsageMetric
 
-	// Print Metrics
-	fmt.Fprintln(w, "=== CPU Usage ===")
-	fmt.Fprintln(w, cpuUsageOutput)
-	fmt.Fprintln(w, "=== Load Average ===")
-	fmt.Fprintln(w, loadAverageOutput)
-	fmt.Fprintln(w, "=== Memory Usage ===")
-	fmt.Fprintln(w, memUsageOutput)
-	fmt.Fprintln(w, "=== Swap Usage ===")
-	fmt.Fprintln(w, swapUsageOutput)
-	fmt.Fprintln(w, "=== Disk Usage ===")
-	fmt.Fprintln(w, diskUsageOutput)
+	// Update Swap Usage metric
+	swapUsageOutput, _ := executeCommand("free -h")
+	// Parse swapUsageOutput and update swapUsageMetric
 
-	w.Flush()
-}
-
-func clearScreen() {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+	// Update other metrics...
 }
 
 func main() {
+	// Expose metrics to Prometheus
+	http.Handle("/metrics", promhttp.Handler())
+
+	// Start HTTP server in a goroutine
+	go func() {
+		http.ListenAndServe(":8080", nil)
+	}()
+
+	// Update and export metrics periodically
 	for {
-		displayMetrics()
+		updateMetrics()
 		time.Sleep(2 * time.Second)
 	}
 }
