@@ -1,11 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"os/exec"
-	"text/tabwriter"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -51,6 +48,7 @@ var (
 			Name: "swap_usage_bytes",
 			Help: "Swap Usage in Bytes",
 		},
+	)
 )
 
 func init() {
