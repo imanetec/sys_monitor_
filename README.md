@@ -1,11 +1,20 @@
 # sys_monitor
 The System Activity Monitor Tool is a lightweight and real-time utility for tracking and visualizing essential system performance metrics.
 
+## Prerequisites
+
+Before you begin, ensure you have the following tools installed:
+
+- [Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/installation/)
+- [Grafana](https://grafana.com/docs/grafana/latest/installation/)
+- [Go](https://golang.org/dl/) (for building and running the project)
+
+
 ## Getting Started
 
 To run this project on your machine, follow these steps:
 
-1. Install Go: Download and install Go from the official website [https://golang.org/dl/](https://golang.org/dl/).
+1. Make sure Go is installed in your machine.
 
 2. Clone the repository:
    ```bash
