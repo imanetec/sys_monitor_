@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os/exec"
 	"time"
@@ -72,22 +73,27 @@ func executeCommand(command string) (string, error) {
 func updateMetrics() {
 	// Update CPU metrics
 	cpuUsageOutput, _ := executeCommand("top -bn 1 | grep Cpu")
+	fmt.Println("CPU Usage Output:", cpuUsageOutput)
 	// Parse cpuUsageOutput and update cpuUsageMetric for each core
 
 	// Update Memory metrics
 	memUsageOutput, _ := executeCommand("free -h")
+	fmt.Println("Memory Usage Output:", memUsageOutput)
 	// Parse memUsageOutput and update memoryUsageMetric
 
 	// Update Load Average metric
 	loadAvgOutput, _ := executeCommand("uptime")
+	fmt.Println("Load Average Usage Output:", loadAvgOutput)
 	// Parse loadAvgOutput and update loadAverageMetric
 
 	// Update Disk Usage metric
 	diskUsageOutput, _ := executeCommand("df -h /")
+	fmt.Println("Disk Usage Output:", diskUsageOutput)
 	// Parse diskUsageOutput and update diskUsageMetric
 
 	// Update Swap Usage metric
 	swapUsageOutput, _ := executeCommand("free -h")
+	fmt.Println("SWAP Usage Output:", swapUsageOutput)
 	// Parse swapUsageOutput and update swapUsageMetric
 
 	// Update other metrics...
